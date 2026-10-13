@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
-  const { loginWithGoogle } = useAuth();
+  const { loginWithGoogle, loginWithEmail } = useAuth();
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -55,26 +55,27 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
     setErrorMessage('Google Sign-In was cancelled or failed to initialize.');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
 
-    if (!email.trim() || !password.trim()) {
-      setErrorMessage('Please fill in all required fields.');
+    if (!email.trim()) {
+      setErrorMessage('Please enter your email address.');
       return;
     }
 
-    if (authMode === 'register' && password !== confirmPassword) {
-      setErrorMessage('Passwords do not match.');
-      return;
+    setIsLoading(true);
+    try {
+      const loggedInUser = await loginWithEmail(email.trim(), name.trim() || email.split('@')[0]);
+      if (onLoginSuccess) {
+        onLoginSuccess(loggedInUser);
+      }
+      onClose();
+    } catch (err) {
+      setErrorMessage(err.message || 'Login failed. Please check backend connection.');
+    } finally {
+      setIsLoading(false);
     }
-
-    if (password.length < 6) {
-      setErrorMessage('Password must be at least 6 characters.');
-      return;
-    }
-
-    setErrorMessage('Please use "Sign in with Google" to authenticate and access all unified AI providers.');
   };
 
   return (
@@ -144,8 +145,56 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
           )}
 
           <div className="auth-separator">
-            <span>Server-side Managed Keys</span>
+            <span>Or Enter Your Email</span>
           </div>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '14px 0' }}>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="email"
+                placeholder="developer@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '11px 14px 11px 38px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <Mail size={16} style={{ position: 'absolute', left: 12, top: 13, color: '#94a3b8' }} />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || !email.trim()}
+              style={{
+                width: '100%',
+                padding: '11px',
+                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                border: 'none',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: isLoading || !email.trim() ? 'not-allowed' : 'pointer',
+                opacity: isLoading || !email.trim() ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <Zap size={16} />
+              <span>{isLoading ? 'Activating Session...' : 'Instant Developer Login'}</span>
+            </button>
+          </form>
 
           {/* Quick Perks Indicator */}
           <div className="auth-features-strip">

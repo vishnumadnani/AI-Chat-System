@@ -98,6 +98,39 @@ export function AuthProvider({ children }) {
     }
   }, [setSessionToken]);
 
+  // Authenticate with email / developer account
+  const loginWithEmail = useCallback(async (email, name = '') => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, name }),
+      });
+
+      let data = null;
+      const text = await res.text();
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {}
+      }
+
+      if (!res.ok) {
+        throw new Error((data && data.error) || 'Failed to authenticate with email.');
+      }
+
+      setSessionToken(data.token);
+      setUser(data.user);
+      return data.user;
+    } finally {
+      setLoading(false);
+    }
+  }, [setSessionToken]);
+
   // Logout: call POST /api/auth/logout, clear in-memory state and clear BYOK overrides
   const logout = useCallback(async () => {
     setLoading(true);
@@ -159,6 +192,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     loading,
     loginWithGoogle,
+    loginWithEmail,
     logout,
     refreshUser,
     authFetch,

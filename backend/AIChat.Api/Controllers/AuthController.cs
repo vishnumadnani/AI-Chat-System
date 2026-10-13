@@ -25,6 +25,75 @@ public class AuthController : ControllerBase
         public string? IdToken { get; set; }
     }
 
+    public class EmailAuthRequest
+    {
+        public string? Email { get; set; }
+        public string? Name { get; set; }
+    }
+
+    [HttpPost("email")]
+    public async Task<IActionResult> EmailLogin([FromBody] EmailAuthRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request?.Email))
+        {
+            return BadRequest(new { error = "Email address is required." });
+        }
+
+        try
+        {
+            var email = request.Email.Trim();
+            if (!_authService.IsEmailAllowed(email))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { error = "Access restricted: email or domain not authorized." });
+            }
+
+            var name = !string.IsNullOrWhiteSpace(request.Name) ? request.Name.Trim() : email.Split('@')[0];
+            var user = await _authService.GetOrCreateUserByEmailAsync(email, name);
+
+            if (!user.IsActive)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { error = "Your account has been deactivated." });
+            }
+
+            var token = _authService.GenerateJwtToken(user, out var jti, out var expiresAt);
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = Request.IsHttps,
+                SameSite = SameSiteMode.Lax,
+                Expires = expiresAt,
+                Path = "/"
+            };
+            Response.Cookies.Append("ai_hub_session", token, cookieOptions);
+
+            var (remainingQuota, totalLimit) = await _authService.GetUserQuotaAsync(user.Id);
+
+            return Ok(new
+            {
+                token,
+                user = new
+                {
+                    id = user.Id,
+                    email = user.Email,
+                    name = user.Name,
+                    pictureUrl = user.PictureUrl,
+                    role = user.Role,
+                    quota = new
+                    {
+                        remaining = remainingQuota,
+                        limit = totalLimit
+                    }
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed email authentication");
+            return BadRequest(new { error = "Email authentication failed: " + ex.Message });
+        }
+    }
+
     [HttpPost("google")]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleAuthRequest request)
     {

@@ -109,6 +109,37 @@ public class AuthService
         return user;
     }
 
+    public async Task<User> GetOrCreateUserByEmailAsync(string email, string name)
+    {
+        var lowerEmail = email.Trim().ToLowerInvariant();
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == lowerEmail);
+
+        if (user == null)
+        {
+            user = new User
+            {
+                GoogleSubjectId = "email_" + Guid.NewGuid().ToString("N")[..12],
+                Email = email.Trim(),
+                Name = name,
+                PictureUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(name)}&background=6366f1&color=fff",
+                CreatedAt = DateTime.UtcNow,
+                LastLoginAt = DateTime.UtcNow,
+                IsActive = true,
+                RequestsUsedToday = 0,
+                LastRequestDate = DateTime.UtcNow.Date
+            };
+            _db.Users.Add(user);
+        }
+        else
+        {
+            user.Name = string.IsNullOrWhiteSpace(user.Name) ? name : user.Name;
+            user.LastLoginAt = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
+        return user;
+    }
+
     public string GenerateJwtToken(User user, out string jti, out DateTime expiresAt)
     {
         jti = Guid.NewGuid().ToString("N");
