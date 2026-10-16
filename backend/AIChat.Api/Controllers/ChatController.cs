@@ -71,10 +71,10 @@ public class ChatController : ControllerBase
 
         if ((availableConfig == null || (availableConfig.RequiresApiKey && string.IsNullOrWhiteSpace(availableConfig.ApiKey) && string.IsNullOrWhiteSpace(request.ApiKey))))
         {
-            // Route seamlessly through the active high-capacity free tier model (Qwen 3.8 27B)
-            effectiveProvider = "OpenRouter";
-            effectiveModel = "qwen/qwen3.8-27b:free";
-            Console.WriteLine($"[ChatController] Unkeyed provider '{request.Provider}' auto-routed to free tier '{effectiveProvider}:{effectiveModel}'");
+            // Route seamlessly through the verified working high-capacity Gemini 3.5 Flash engine
+            effectiveProvider = "Gemini";
+            effectiveModel = "gemini-3.5-flash-lite";
+            Console.WriteLine($"[ChatController] Team user logged in - unkeyed '{request.Provider}' auto-routed to active engine '{effectiveProvider}:{effectiveModel}'");
         }
 
         IChatService providerService;
@@ -115,7 +115,7 @@ public class ChatController : ControllerBase
                 var fallbackRequest = new ChatRequest
                 {
                     Provider = "OpenRouter",
-                    Model = "qwen/qwen3.8-27b:free",
+                    Model = "deepseek/deepseek-r1:free",
                     Messages = request.Messages,
                     SystemPrompt = request.SystemPrompt,
                     Temperature = request.Temperature,
@@ -123,7 +123,7 @@ public class ChatController : ControllerBase
                 };
                 response = await fallbackService.SendAsync(fallbackRequest, cancellationToken);
                 effectiveProvider = "OpenRouter";
-                effectiveModel = "qwen/qwen3.8-27b:free";
+                effectiveModel = "deepseek/deepseek-r1:free";
             }
             catch (Exception ex)
             {

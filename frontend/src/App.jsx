@@ -57,7 +57,7 @@ export default function App() {
   const { user: authUser, isAuthenticated, logout: authLogout, authFetch, refreshUser } = useAuth();
   const [providers, setProviders] = useState([]);
   const [selectedProvider, setSelectedProvider] = useState('Gemini');
-  const [selectedModel, setSelectedModel] = useState('gemini-3.8-flash');
+  const [selectedModel, setSelectedModel] = useState('gemini-3.5-flash-lite');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
@@ -812,32 +812,20 @@ export default function App() {
           <div className="model-select-wrapper">
             <select
               value={selectedModel}
-              onChange={(e) => {
-                const chosenId = e.target.value;
-                setSelectedModel(chosenId);
-                // Auto-switch provider if chosen model belongs to another provider
-                const modelInfo = allUnifiedModels.find((m) => m.id === chosenId);
-                if (modelInfo && modelInfo.provider && modelInfo.provider !== selectedProvider) {
-                  setSelectedProvider(modelInfo.provider);
-                }
-              }}
+              onChange={(e) => setSelectedModel(e.target.value)}
               className="hub-select"
             >
-              {providers.map((p) => {
-                const pModels = (p.models || []).filter((m) =>
-                  selectedCategory === 'All' ? true : m.category.toLowerCase() === selectedCategory.toLowerCase()
-                );
-                if (pModels.length === 0) return null;
-                return (
-                  <optgroup key={p.provider} label={`━━━ ${p.provider} Models ━━━`}>
-                    {pModels.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name || m.id} ({m.badge})
-                      </option>
-                    ))}
-                  </optgroup>
-                );
-              })}
+              {availableModels.length > 0 ? (
+                availableModels.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name || m.id} ({m.badge})
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>
+                  No models available
+                </option>
+              )}
             </select>
           </div>
 

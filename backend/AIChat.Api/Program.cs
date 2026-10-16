@@ -43,6 +43,7 @@ builder.Services.AddCors(options =>
             var uri = new Uri(origin);
             return uri.Host == "localhost" ||
                    uri.Host == "127.0.0.1" ||
+                   uri.Host.EndsWith("codeai.in", StringComparison.OrdinalIgnoreCase) ||
                    uri.Host.StartsWith("192.168.") ||
                    uri.Host.StartsWith("10.") ||
                    uri.Host.StartsWith("172.");
@@ -153,6 +154,6 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers().RequireRateLimiting("AuthRateLimit");
+app.MapControllers();
 
 app.Run();

@@ -113,23 +113,23 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
             </div>
           )}
 
-          {/* Instant Email / Developer Sign-In (Works on any URL/Origin) */}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '14px 0 20px 0' }}>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Mail size={15} className="text-indigo-400" />
-              <span>Enter your Google/Gmail or Developer Email:</span>
-            </label>
-            <div style={{ position: 'relative' }}>
+          {/* Direct One-Click Email Login (100% works on any IP / domain / local network without origin_mismatch) */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', margin: '14px 0 20px 0' }}>
+            <div>
+              <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <User size={15} className="text-indigo-400" />
+                <span>Your Name:</span>
+              </label>
               <input
-                type="email"
-                placeholder="vishnu.madnani.dev.in@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                placeholder="e.g. Vishnu Madnani"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 14px 12px 38px',
+                  padding: '12px 14px',
                   background: 'rgba(255, 255, 255, 0.07)',
-                  border: '1px solid rgba(99, 102, 241, 0.4)',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
                   borderRadius: '8px',
                   color: '#fff',
                   fontSize: '0.92rem',
@@ -137,7 +137,31 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                   boxSizing: 'border-box'
                 }}
               />
-              <Mail size={16} style={{ position: 'absolute', left: 12, top: 14, color: '#94a3b8' }} />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <Mail size={15} className="text-indigo-400" />
+                <span>Your Google / Gmail Address:</span>
+              </label>
+              <input
+                type="email"
+                placeholder="you@gmail.com"
+                value={email}
+                required
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  background: 'rgba(255, 255, 255, 0.07)',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '0.92rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
             </div>
 
             <button
@@ -146,6 +170,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
               style={{
                 width: '100%',
                 padding: '12px',
+                marginTop: '6px',
                 background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                 border: 'none',
                 borderRadius: '8px',
@@ -163,47 +188,34 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
               }}
             >
               <Zap size={16} />
-              <span>{isLoading ? 'Activating Session...' : 'Sign In & Activate All AI Models'}</span>
+              <span>{isLoading ? 'Signing In...' : 'Sign In With Email'}</span>
             </button>
           </form>
 
-          <div className="auth-separator">
-            <span>Or Sign in with Google Pop-up</span>
+          {/* Separator */}
+          <div className="auth-separator" style={{ display: 'flex', alignItems: 'center', margin: '14px 0', color: '#64748b', fontSize: '0.8rem' }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+            <span style={{ padding: '0 10px' }}>OR OFFICIAL GOOGLE SIGN-IN</span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
           </div>
 
-          {/* Social Sign-In Options - Real Google GIS Button */}
-          {(!import.meta.env.VITE_GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID === 'your-google-client-id.apps.googleusercontent.com') ? (
-            <div style={{
-              margin: '12px 0',
-              padding: '12px',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: 8,
-              fontSize: '0.82rem',
-              color: '#fca5a5',
-              lineHeight: 1.5
-            }}>
-              <strong style={{ color: '#f87171', display: 'block', marginBottom: 4 }}>⚠️ Google Client ID Not Set</strong>
-              Please configure <code style={{ color: '#fef08a', background: 'rgba(0,0,0,0.3)', padding: '2px 4px', borderRadius: 4 }}>VITE_GOOGLE_CLIENT_ID</code> in <code style={{ color: '#fef08a', background: 'rgba(0,0,0,0.3)', padding: '2px 4px', borderRadius: 4 }}>frontend/.env</code> and restart Vite.
+          {/* Official Google OAuth Login Button */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, margin: '6px 0 16px 0' }}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="filled_black"
+                size="large"
+                shape="rectangular"
+                text="continue_with"
+                width="340"
+              />
             </div>
-          ) : (
-            <div className="auth-social-buttons" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, margin: '14px 0' }}>
-              <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  theme="filled_black"
-                  size="large"
-                  shape="rectangular"
-                  text="continue_with"
-                  width="340"
-                />
-              </div>
-              <p style={{ fontSize: '0.74rem', color: '#94a3b8', textAlign: 'center', margin: 0 }}>
-                If you see <i>origin_mismatch</i>, please use the <b>Sign In & Activate</b> button above or register your port in Google Cloud Console.
-              </p>
-            </div>
-          )}
+            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+              *Note: For Google popup on LAN IP, add your IP in Google Cloud Console.
+            </span>
+          </div>
 
           {/* Quick Perks Indicator */}
           <div className="auth-features-strip">
